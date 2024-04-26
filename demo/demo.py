@@ -78,21 +78,39 @@ def get_parser():
     return parser
 
 
-def test_opencv_video_format(codec, file_ext):
+def test_opencv_video_format(codec):
+    supported_codecs = ["XVID", "MP4V", "X264"]  # List of supported codecs
+
+    # Create a temporary directory to test video writing
     with tempfile.TemporaryDirectory(prefix="video_format_test") as dir:
-        filename = os.path.join(dir, "test_file" + file_ext)
-        writer = cv2.VideoWriter(
-            filename=filename,
-            fourcc=cv2.VideoWriter_fourcc(*codec),
-            fps=float(30),
-            frameSize=(10, 10),
-            isColor=True,
-        )
-        [writer.write(np.zeros((10, 10, 3), np.uint8)) for _ in range(30)]
-        writer.release()
-        if os.path.isfile(filename):
-            return True
-        return False
+        filename = os.path.join(dir, "test_file.avi")  # Specify output filename with .avi extension
+        success = False
+
+        # Check if the specified codec is in the list of supported codecs
+        if codec in supported_codecs:
+            # Initialize VideoWriter with the specified codec
+            writer = cv2.VideoWriter(
+                filename=filename,
+                fourcc=cv2.VideoWriter_fourcc(*codec),
+                fps=float(30),
+                frameSize=(10, 10),
+                isColor=True
+            )
+
+            # Write a test frame (blank frame) to the video writer
+            for _ in range(30):
+                writer.write(cv2.cvtColor(
+                    src=np.zeros((10, 10, 3), dtype=np.uint8),
+                    code=cv2.COLOR_BGR2RGB
+                ))
+
+            # Release the video writer
+            writer.release()
+
+            # Check if the output video file was created successfully
+            success = os.path.isfile(filename)
+
+    return success
 
 
 def main() -> None:
